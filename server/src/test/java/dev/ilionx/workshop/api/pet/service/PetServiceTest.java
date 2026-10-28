@@ -19,6 +19,10 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
@@ -281,34 +285,54 @@ class PetServiceTest extends UnitTest {
         thirdPet.setId(3);
         thirdPet.setName("Max");
         final List<Pet> expectedPets = List.of(firstPet, secondPet, thirdPet);
-        given(petRepository.findAll()).willReturn(expectedPets);
+        final Pageable pageable = PageRequest.of(0, 10);
+        given(petRepository.findAll(pageable)).willReturn(new PageImpl<>(expectedPets, pageable, expectedPets.size()));
 
         // When: Finding all pets
-        final List<Pet> actualPets = petService.findAll();
+        final Page<Pet> actualPets = petService.findAll(null, pageable);
 
         // Then: All pets should be returned
         assertThat(actualPets, is(notNullValue()));
-        assertThat(actualPets, hasSize(3));
-        assertThat(actualPets.get(0).getId(), is(equalTo(VALID_PET_ID)));
-        assertThat(actualPets.get(0).getName(), is(equalTo(VALID_PET_NAME)));
-        assertThat(actualPets.get(1).getId(), is(equalTo(2)));
-        assertThat(actualPets.get(1).getName(), is(equalTo("Bella")));
-        assertThat(actualPets.get(2).getId(), is(equalTo(3)));
-        assertThat(actualPets.get(2).getName(), is(equalTo("Max")));
+        assertThat(actualPets.getContent(), hasSize(3));
+        assertThat(actualPets.getContent().get(0).getId(), is(equalTo(VALID_PET_ID)));
+        assertThat(actualPets.getContent().get(0).getName(), is(equalTo(VALID_PET_NAME)));
+        assertThat(actualPets.getContent().get(1).getId(), is(equalTo(2)));
+        assertThat(actualPets.getContent().get(1).getName(), is(equalTo("Bella")));
+        assertThat(actualPets.getContent().get(2).getId(), is(equalTo(3)));
+        assertThat(actualPets.getContent().get(2).getName(), is(equalTo("Max")));
     }
 
     @Test
-    @DisplayName("Should return empty list when no pets exist")
+    @DisplayName("Should return empty page when no pets exist")
     void shouldReturnEmptyListWhenNoPetsExist() {
         // Given: No pets exist in the repository
-        given(petRepository.findAll()).willReturn(Collections.emptyList());
+        final Pageable pageable = PageRequest.of(0, 10);
+        given(petRepository.findAll(pageable)).willReturn(new PageImpl<>(Collections.emptyList(), pageable, 0));
 
         // When: Finding all pets
-        final List<Pet> actualPets = petService.findAll();
+        final Page<Pet> actualPets = petService.findAll(null, pageable);
 
-        // Then: An empty list should be returned
+        // Then: An empty page should be returned
         assertThat(actualPets, is(notNullValue()));
-        assertThat(actualPets, is(empty()));
+        assertThat(actualPets.getContent(), is(empty()));
+    }
+
+    @Test
+    @DisplayName("Should filter pets by name when name is provided")
+    void shouldFilterPetsByNameWhenNameIsProvided() {
+        // Given: A pet matching the search term exists
+        final Pet matchingPet = aValidPet();
+        matchingPet.setName("Bella");
+        final Pageable pageable = PageRequest.of(0, 10);
+        given(petRepository.findByNameContainingIgnoreCase("bell", pageable))
+            .willReturn(new PageImpl<>(List.of(matchingPet), pageable, 1));
+
+        // When: Finding pets by name
+        final Page<Pet> actualPets = petService.findAll("bell", pageable);
+
+        // Then: Only the matching pet should be returned
+        assertThat(actualPets.getContent(), hasSize(1));
+        assertThat(actualPets.getContent().get(0).getName(), is(equalTo("Bella")));
     }
 
     @Test

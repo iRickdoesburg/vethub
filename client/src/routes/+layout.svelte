@@ -2,8 +2,11 @@
 	import '../app.css';
 	import { Toaster } from 'svelte-sonner';
 	import { Header, Footer } from '$lib/components/layout';
+	import { themeStore } from '$lib/stores/theme.svelte';
 
 	let { children } = $props();
+
+	themeStore.init();
 </script>
 
 <Toaster position="top-right" richColors closeButton />

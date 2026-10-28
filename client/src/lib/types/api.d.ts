@@ -309,7 +309,7 @@ export interface paths {
         };
         /**
          * Get all pets
-         * @description Returns a list of all pets
+         * @description Returns a page of pets, optionally filtered by a case-insensitive name search
          */
         get: operations["getAllPets"];
         put?: never;
@@ -499,53 +499,6 @@ export interface paths {
         get: operations["health"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/x-www-form-urlencoded": {
-                        username?: string;
-                        password?: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
         delete?: never;
         options?: never;
         head?: never;
@@ -1020,6 +973,47 @@ export interface components {
         Link: {
             href?: string;
             templated?: boolean;
+        };
+        Pageable: {
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            sort?: string[];
+        };
+        PagePetResponse: {
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int32 */
+            numberOfElements?: number;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            size?: number;
+            content?: components["schemas"]["PetResponse"][];
+            /** Format: int32 */
+            number?: number;
+            empty?: boolean;
+        };
+        PageableObject: {
+            paged?: boolean;
+            /** Format: int32 */
+            pageNumber?: number;
+            /** Format: int32 */
+            pageSize?: number;
+            sort?: components["schemas"]["SortObject"];
+            unpaged?: boolean;
+            /** Format: int64 */
+            offset?: number;
+        };
+        SortObject: {
+            sorted?: boolean;
+            unsorted?: boolean;
+            empty?: boolean;
         };
     };
     responses: never;
@@ -3877,7 +3871,10 @@ export interface operations {
     };
     getAllPets: {
         parameters: {
-            query?: never;
+            query: {
+                name?: string;
+                pageable: components["schemas"]["Pageable"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3890,7 +3887,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PetResponse"][];
+                    "application/json": components["schemas"]["PagePetResponse"];
                 };
             };
             /** @description Unauthorized */

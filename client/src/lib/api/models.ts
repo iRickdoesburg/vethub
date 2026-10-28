@@ -20,6 +20,7 @@ export type PetResponse = components['schemas']['PetResponse'];
 export type PetSummaryResponse = components['schemas']['PetSummaryResponse'];
 export type CreatePetRequest = components['schemas']['CreatePetRequest'];
 export type UpdatePetRequest = components['schemas']['UpdatePetRequest'];
+export type PetPageResponse = components['schemas']['PagePetResponse'];
 
 // =============================================================================
 // Pet Type Types (the type of pet, e.g., "Cat", "Dog")

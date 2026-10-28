@@ -10,8 +10,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,15 +40,18 @@ public class PetGlobalController {
     @ResponseStatus(OK)
     @Operation(
         summary = "Get all pets",
-        description = "Returns a list of all pets"
+        description = "Returns a page of pets, optionally filtered by a case-insensitive name search"
     )
     @GetMapping(
         path = PETS,
         produces = APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<List<PetResponse>> getAllPets() {
-        final List<Pet> pets = petService.findAll();
-        return ResponseEntity.status(OK).body(petMapper.toResponseList(pets));
+    public ResponseEntity<Page<PetResponse>> getAllPets(
+        @RequestParam(required = false) final String name,
+        @PageableDefault(size = 10) final Pageable pageable
+    ) {
+        final Page<Pet> pets = petService.findAll(name, pageable);
+        return ResponseEntity.status(OK).body(pets.map(petMapper::toResponse));
     }
 
     @ResponseStatus(OK)

@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -116,13 +118,18 @@ public class PetService {
     }
 
     /**
-     * Retrieves all pets in the system.
+     * Retrieves a page of pets in the system, optionally filtered by name.
      *
-     * @return list of all pets
+     * @param name     optional (partial, case-insensitive) pet name filter; {@code null} matches all pets
+     * @param pageable the pagination information
+     * @return a page of matching pets
      */
     @Transactional(readOnly = true)
-    public List<Pet> findAll() {
-        return petRepository.findAll();
+    public Page<Pet> findAll(final String name, final Pageable pageable) {
+        if (name == null) {
+            return petRepository.findAll(pageable);
+        }
+        return petRepository.findByNameContainingIgnoreCase(name, pageable);
     }
 
     /**

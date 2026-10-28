@@ -7,17 +7,37 @@
 import { client } from '$lib/api/client';
 import type {
 	PetResponse,
+	PetPageResponse,
 	CreatePetRequest,
 	UpdatePetRequest
 } from '$lib/api/models';
 
+export interface GetPetsOptions {
+	/** Optional case-insensitive, partial match against the pet's name */
+	name?: string;
+	/** Zero-based page index */
+	page?: number;
+	/** Number of pets per page */
+	size?: number;
+}
+
 /**
- * Get all pets
+ * Get a page of pets, optionally filtered by name.
+ *
+ * Note: Spring's `Pageable` is documented by springdoc as a single nested
+ * `pageable` query object, but at runtime it actually binds flat `page`/`size`
+ * query params. The query is cast to work around that type/runtime mismatch.
  */
-export async function getPets(): Promise<PetResponse[]> {
-	const { data, error } = await client.GET('/v1/pets');
+export async function getPets(options: GetPetsOptions = {}): Promise<PetPageResponse> {
+	const { name, page, size } = options;
+	const { data, error } = await client.GET('/v1/pets', {
+		params: {
+			query: { name, page, size } as never
+		}
+	});
 	if (error) throw error;
-	return data ?? [];
+	if (!data) throw new Error('Failed to load pets');
+	return data;
 }
 
 /**

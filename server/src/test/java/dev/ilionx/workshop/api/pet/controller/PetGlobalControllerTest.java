@@ -46,25 +46,131 @@ class PetGlobalControllerTest extends IntegrationTest {
         final Pet pet = aSavedPet(owner);
 
         // When: Requesting all pets
-        // Then: Should return 200 with list containing the pet
+        // Then: Should return 200 with a page containing the pet
         mockMvc.perform(get(PETS))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(1)))
-            .andExpect(jsonPath("$[0].id", is(equalTo(pet.getId()))))
-            .andExpect(jsonPath("$[0].name", is(equalTo(PET_NAME))))
-            .andExpect(jsonPath("$[0].ownerId", is(equalTo(owner.getId()))));
+            .andExpect(jsonPath("$.content", hasSize(1)))
+            .andExpect(jsonPath("$.content[0].id", is(equalTo(pet.getId()))))
+            .andExpect(jsonPath("$.content[0].name", is(equalTo(PET_NAME))))
+            .andExpect(jsonPath("$.content[0].ownerId", is(equalTo(owner.getId()))))
+            .andExpect(jsonPath("$.totalElements", is(equalTo(1))));
     }
 
     @Test
-    @DisplayName("Should return empty list when no pets exist")
+    @DisplayName("Should return empty page when no pets exist")
     void shouldReturnEmptyListWhenNoPetsExist() throws Exception {
         // Given: No pets exist in the database
 
         // When: Requesting all pets
-        // Then: Should return 200 with empty array
+        // Then: Should return 200 with an empty page
         mockMvc.perform(get(PETS))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(0)));
+            .andExpect(jsonPath("$.content", hasSize(0)))
+            .andExpect(jsonPath("$.totalElements", is(equalTo(0))));
+    }
+
+    @Test
+    @DisplayName("Should return only pets whose name contains the search term")
+    void shouldReturnOnlyPetsWhoseNameContainsSearchTerm() throws Exception {
+        // Given: A pet named "Buddy" and another pet with an unrelated name exist
+        final Owner owner = aSavedOwner();
+        final Pet buddy = aSavedPet(owner, "Buddy");
+        final Owner otherOwner = aSavedOwner();
+        aSavedPet(otherOwner, "Whiskers");
+
+        // When: Searching pets by name=Buddy
+        // Then: Only the pet named "Buddy" should be returned
+        mockMvc.perform(get(PETS).param("name", "Buddy"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content", hasSize(1)))
+            .andExpect(jsonPath("$.content[0].id", is(equalTo(buddy.getId()))))
+            .andExpect(jsonPath("$.content[0].name", is(equalTo("Buddy"))));
+    }
+
+    @Test
+    @DisplayName("Should match pet name search case-insensitively")
+    void shouldMatchPetNameSearchCaseInsensitively() throws Exception {
+        // Given: A pet named "Buddy" exists
+        final Owner owner = aSavedOwner();
+        final Pet buddy = aSavedPet(owner, "Buddy");
+
+        // When: Searching with a lowercase query
+        // Then: The "Buddy" pet should still be found
+        mockMvc.perform(get(PETS).param("name", "buddy"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content", hasSize(1)))
+            .andExpect(jsonPath("$.content[0].id", is(equalTo(buddy.getId()))))
+            .andExpect(jsonPath("$.content[0].name", is(equalTo("Buddy"))));
+    }
+
+    @Test
+    @DisplayName("Should return all pets when name query param is empty")
+    void shouldReturnAllPetsWhenNameQueryParamIsEmpty() throws Exception {
+        // Given: Two pets with different names exist
+        final Owner owner = aSavedOwner();
+        aSavedPet(owner, "Buddy");
+        final Owner otherOwner = aSavedOwner();
+        aSavedPet(otherOwner, "Whiskers");
+
+        // When: Searching with an empty name query param
+        // Then: All pets should be returned, unfiltered
+        mockMvc.perform(get(PETS).param("name", ""))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content", hasSize(2)))
+            .andExpect(jsonPath("$.totalElements", is(equalTo(2))));
+    }
+
+    @Test
+    @DisplayName("Should return an empty list with 200 OK when no pets match the search")
+    void shouldReturnEmptyListWhenNoPetsMatchSearch() throws Exception {
+        // Given: A pet exists, but none match the upcoming search term
+        final Owner owner = aSavedOwner();
+        aSavedPet(owner, "Buddy");
+
+        // When: Searching for a name that doesn't match any pet
+        // Then: Should return 200 OK with an empty list, not 404
+        mockMvc.perform(get(PETS).param("name", "Nonexistent"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content", hasSize(0)))
+            .andExpect(jsonPath("$.content", is(empty())))
+            .andExpect(jsonPath("$.totalElements", is(equalTo(0))));
+    }
+
+    @Test
+    @DisplayName("Should match pet name search on a partial, case-insensitive substring")
+    void shouldFilterPetsByPartialCaseInsensitiveName() throws Exception {
+        // Given: Two pets with different names exist
+        final Owner owner = aSavedOwner();
+        aSavedPet(owner);
+        final Owner secondOwner = aSavedOwner();
+        final Pet bella = aSavedPet(secondOwner, "Bella");
+
+        // When: Searching pets by a partial, case-insensitive name
+        // Then: Only the matching pet should be returned
+        mockMvc.perform(get(PETS).param("name", "bell"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content", hasSize(1)))
+            .andExpect(jsonPath("$.content[0].id", is(equalTo(bella.getId()))))
+            .andExpect(jsonPath("$.content[0].name", is(equalTo("Bella"))));
+    }
+
+    @Test
+    @DisplayName("Should paginate pets when page and size query params are provided")
+    void shouldPaginatePetsWhenPageAndSizeQueryParamsAreProvided() throws Exception {
+        // Given: Three pets exist in the database
+        final Owner owner = aSavedOwner();
+        aSavedPet(owner, "Alpha");
+        aSavedPet(owner, "Beta");
+        aSavedPet(owner, "Gamma");
+
+        // When: Requesting the second page with a size of 2
+        // Then: Should return only the remaining pet, with correct page metadata
+        mockMvc.perform(get(PETS).param("page", "1").param("size", "2"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content", hasSize(1)))
+            .andExpect(jsonPath("$.totalElements", is(equalTo(3))))
+            .andExpect(jsonPath("$.totalPages", is(equalTo(2))))
+            .andExpect(jsonPath("$.number", is(equalTo(1))));
     }
 
     // ========================= GET BY ID =========================
