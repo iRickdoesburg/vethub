@@ -8,6 +8,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import * as Card from '$lib/components/ui/card';
 	import * as Dialog from '$lib/components/ui/dialog';
+	import { VisitCard } from '$lib/components/visits';
 	import {
 		PawPrint,
 		Calendar,
@@ -167,22 +168,8 @@
 			</div>
 		{:else}
 			<div class="space-y-4">
-				{#each pet.visits.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as visit (visit.id)}
-					<Card.Root>
-						<Card.Content class="pt-6">
-							<div class="flex items-start justify-between">
-								<div class="flex items-start gap-4">
-									<div class="flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
-										<Stethoscope class="h-5 w-5 text-success" />
-									</div>
-									<div>
-										<p class="font-medium text-foreground">{visit.description}</p>
-										<p class="text-sm text-muted-foreground">{formatDate(visit.date)}</p>
-									</div>
-								</div>
-							</div>
-						</Card.Content>
-					</Card.Root>
+				{#each [...pet.visits].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as visit (visit.id)}
+					<VisitCard date={visit.date} description={visit.description} vet={visit.vet} />
 				{/each}
 			</div>
 		{/if}

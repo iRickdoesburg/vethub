@@ -6,7 +6,9 @@ import dev.ilionx.workshop.api.vet.model.request.CreateVetRequest;
 import dev.ilionx.workshop.api.vet.model.request.UpdateVetRequest;
 import dev.ilionx.workshop.api.vet.repository.SpecialtyRepository;
 import dev.ilionx.workshop.api.vet.repository.VetRepository;
+import dev.ilionx.workshop.api.visit.repository.VisitRepository;
 import dev.ilionx.workshop.support.UnitTest;
+import io.github.jframe.exception.core.BadRequestException;
 import io.github.jframe.exception.core.DataNotFoundException;
 
 import java.util.Collections;
@@ -28,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @DisplayName("Unit Test - Vet Service")
@@ -42,6 +45,7 @@ class VetServiceTest extends UnitTest {
 
     private VetRepository vetRepository;
     private SpecialtyRepository specialtyRepository;
+    private VisitRepository visitRepository;
     private VetService vetService;
 
     private Vet vetWithoutSpecialties;
@@ -51,7 +55,8 @@ class VetServiceTest extends UnitTest {
     void setUp() {
         vetRepository = mock(VetRepository.class);
         specialtyRepository = mock(SpecialtyRepository.class);
-        vetService = new VetService(vetRepository, specialtyRepository);
+        visitRepository = mock(VisitRepository.class);
+        vetService = new VetService(vetRepository, specialtyRepository, visitRepository);
 
         vetWithoutSpecialties = aValidVet();
 
@@ -256,9 +261,10 @@ class VetServiceTest extends UnitTest {
     @Test
     @DisplayName("Should delete vet when valid ID exists")
     void shouldDeleteVetWhenValidIdExists() {
-        // Given: A vet with valid ID exists in the repository
+        // Given: A vet with valid ID exists in the repository and has no recorded visits
         final Vet existingVet = aValidVet();
         given(vetRepository.findById(VALID_VET_ID)).willReturn(Optional.of(existingVet));
+        given(visitRepository.existsByVetId(VALID_VET_ID)).willReturn(false);
 
         // When: Deleting the vet
         vetService.delete(VALID_VET_ID);
@@ -281,6 +287,24 @@ class VetServiceTest extends UnitTest {
         );
 
         assertThat(exception.getMessage(), is(equalTo("The requested vet does not exist.")));
+    }
+
+    @Test
+    @DisplayName("Should throw BadRequestException when deleting a vet who has recorded visits")
+    void shouldThrowBadRequestExceptionWhenDeletingVetWithRecordedVisits() {
+        // Given: A vet with valid ID exists and has recorded visit history
+        final Vet existingVet = aValidVet();
+        given(vetRepository.findById(VALID_VET_ID)).willReturn(Optional.of(existingVet));
+        given(visitRepository.existsByVetId(VALID_VET_ID)).willReturn(true);
+
+        // When & Then: Deleting the vet should be refused, and the vet should not be deleted
+        final BadRequestException exception = assertThrows(
+            BadRequestException.class,
+            () -> vetService.delete(VALID_VET_ID)
+        );
+
+        assertThat(exception.getMessage(), is(equalTo("This vet has recorded visits and cannot be deleted.")));
+        verify(vetRepository, never()).deleteById(VALID_VET_ID);
     }
 
 }

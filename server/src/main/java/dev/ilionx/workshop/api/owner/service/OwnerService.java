@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static dev.ilionx.workshop.common.exception.ApiErrorCode.OWNER_NOT_FOUND;
+import static dev.ilionx.workshop.common.exception.ApiErrorCode.VISIT_LOOKUP_NOT_FOUND;
 
 /**
  * Service for managing pet owner operations.
@@ -57,6 +58,21 @@ public class OwnerService {
     public Owner findById(final Integer id) {
         return ownerRepository.findById(id)
             .orElseThrow(() -> new DataNotFoundException(OWNER_NOT_FOUND));
+    }
+
+    /**
+     * Finds an owner matching both last name (case-insensitive) and telephone number exactly, for
+     * the public, unauthenticated visit-history lookup. Both fields must match together; the
+     * resulting error does not reveal which field (if either) was incorrect.
+     *
+     * @param lastName  the owner's last name
+     * @param telephone the owner's telephone number
+     * @return the matching owner
+     */
+    @Transactional(readOnly = true)
+    public Owner findForVisitLookup(final String lastName, final String telephone) {
+        return ownerRepository.findByLastNameIgnoreCaseAndTelephone(lastName, telephone)
+            .orElseThrow(() -> new DataNotFoundException(VISIT_LOOKUP_NOT_FOUND));
     }
 
     /**

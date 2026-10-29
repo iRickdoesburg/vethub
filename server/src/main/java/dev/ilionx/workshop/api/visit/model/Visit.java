@@ -1,6 +1,7 @@
 package dev.ilionx.workshop.api.visit.model;
 
 import dev.ilionx.workshop.api.pet.model.Pet;
+import dev.ilionx.workshop.api.vet.model.Vet;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -46,5 +47,13 @@ public class Visit {
         nullable = false
     )
     private Pet pet;
+
+    // Nullable: visits recorded before this field existed won't have a vet assigned.
+    @ManyToOne
+    @JoinColumn(
+        name = "vet_id",
+        nullable = true
+    )
+    private Vet vet;
 
 }

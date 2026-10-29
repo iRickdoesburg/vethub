@@ -6,6 +6,7 @@ import dev.ilionx.workshop.api.visit.model.mapper.VisitMapper;
 import dev.ilionx.workshop.api.visit.model.request.CreateVisitRequest;
 import dev.ilionx.workshop.api.visit.model.request.UpdateVisitRequest;
 import dev.ilionx.workshop.api.visit.model.response.VisitResponse;
+import dev.ilionx.workshop.api.visit.model.validator.VisitValidator;
 import dev.ilionx.workshop.api.visit.service.VisitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,6 +38,7 @@ public class VisitController {
     private final VisitService visitService;
     private final PetService petService;
     private final VisitMapper visitMapper;
+    private final VisitValidator visitValidator;
 
     @ResponseStatus(OK)
     @Operation(
@@ -71,6 +73,7 @@ public class VisitController {
         @PathVariable final Integer petId,
         @RequestBody final CreateVisitRequest request
     ) {
+        visitValidator.validateAndThrow(request);
         petService.findByIdAndOwnerId(petId, ownerId);
         final Visit createdVisit = visitService.create(petId, request);
         return ResponseEntity.status(CREATED).body(visitMapper.toResponse(createdVisit));
@@ -111,6 +114,7 @@ public class VisitController {
         @PathVariable final Integer visitId,
         @RequestBody final UpdateVisitRequest request
     ) {
+        visitValidator.validateAndThrow(request);
         petService.findByIdAndOwnerId(petId, ownerId);
         final Visit visit = visitService.update(visitId, request);
         return ResponseEntity.status(OK).body(visitMapper.toResponse(visit));

@@ -1,5 +1,6 @@
 package dev.ilionx.workshop.api.visit.model.response;
 
+import dev.ilionx.workshop.api.vet.model.response.VetSummaryResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,4 +46,7 @@ public class VisitResponse {
         requiredMode = Schema.RequiredMode.REQUIRED
     )
     private Integer petId;
+
+    @Schema(description = "The vet who performed the visit, or null if not recorded (e.g. visits predating this field)")
+    private VetSummaryResponse vet;
 }

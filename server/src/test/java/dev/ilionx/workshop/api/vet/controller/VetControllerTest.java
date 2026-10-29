@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import static dev.ilionx.workshop.api.Paths.VETS;
 import static dev.ilionx.workshop.api.Paths.VET_BY_ID;
+import static dev.ilionx.workshop.common.exception.ApiErrorCode.VET_HAS_VISITS;
 import static dev.ilionx.workshop.common.exception.ApiErrorCode.VET_NOT_FOUND;
 import static io.github.jframe.util.mapper.ObjectMappers.fromJson;
 import static io.github.jframe.util.mapper.ObjectMappers.toJson;
@@ -252,5 +253,29 @@ class VetControllerTest extends IntegrationTest {
         final String content = response.andReturn().getResponse().getContentAsString();
         final ErrorResponseResource error = fromJson(content, ErrorResponseResource.class);
         assertThat(error.getErrorMessage(), is(equalTo(VET_NOT_FOUND.getReason())));
+    }
+
+    @Test
+    @DisplayName("Should reject deleting a vet who has recorded visits")
+    void shouldRejectDeletingVetWhoHasRecordedVisits() throws Exception {
+        // Given: A vet who has performed a visit on a pet
+        final var owner = aSavedOwner();
+        final var pet = aSavedPet(owner);
+        final var vet = aSavedVet();
+        aSavedVisit(pet, vet);
+
+        // When: Attempting to delete that vet via DELETE
+        final ResultActions response = mockMvc.perform(delete(VET_BY_ID, vet.getId()));
+
+        // Then: HTTP 400 Bad Request should be returned with a clear error message
+        response.andExpect(status().isBadRequest());
+
+        final String content = response.andReturn().getResponse().getContentAsString();
+        final ErrorResponseResource error = fromJson(content, ErrorResponseResource.class);
+        assertThat(error.getErrorMessage(), is(equalTo(VET_HAS_VISITS.getReason())));
+
+        // And: The vet should still exist
+        mockMvc.perform(get(VET_BY_ID, vet.getId()))
+            .andExpect(status().isOk());
     }
 }

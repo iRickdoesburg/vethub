@@ -15,6 +15,10 @@ jframe:
 security:
   cors:
     allowed-origin: ${CORS_ALLOWED_ORIGIN:http://localhost:*}
+  rate-limit:
+    visit-lookup:
+      limit: ${RATE_LIMIT_VISIT_LOOKUP_LIMIT:10}
+      window-seconds: ${RATE_LIMIT_VISIT_LOOKUP_WINDOW_SECONDS:60}
 
 # ======= MANAGEMENT ENDPOINTS =======
 management:

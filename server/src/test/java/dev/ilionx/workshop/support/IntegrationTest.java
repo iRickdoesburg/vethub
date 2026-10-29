@@ -9,6 +9,7 @@ import dev.ilionx.workshop.api.pet.model.request.CreatePetRequest;
 import dev.ilionx.workshop.api.pet.model.request.CreatePetTypeRequest;
 import dev.ilionx.workshop.api.pet.model.request.UpdatePetRequest;
 import dev.ilionx.workshop.api.pet.model.request.UpdatePetTypeRequest;
+import dev.ilionx.workshop.api.vet.model.Vet;
 import dev.ilionx.workshop.api.vet.model.request.CreateSpecialtyRequest;
 import dev.ilionx.workshop.api.vet.model.request.CreateVetRequest;
 import dev.ilionx.workshop.api.vet.model.request.UpdateSpecialtyRequest;
@@ -96,11 +97,25 @@ public abstract class IntegrationTest extends WebMvcConfigurator {
     }
 
     protected Visit aSavedVisit(final Pet pet) {
+        final Vet vet = vetRepository.findById(1)
+            .orElseThrow(() -> new RuntimeException("Vet with ID 1 not found in seed data"));
+        return aSavedVisit(pet, vet);
+    }
+
+    protected Visit aSavedVisit(final Pet pet, final Vet vet) {
         final Visit visit = new Visit();
         visit.setDate(VISIT_DATE);
         visit.setDescription(VISIT_DESCRIPTION);
         visit.setPet(pet);
+        visit.setVet(vet);
         return visitRepository.save(visit);
+    }
+
+    protected Vet aSavedVet() {
+        final Vet vet = new Vet();
+        vet.setFirstName("Alice");
+        vet.setLastName("Brown");
+        return vetRepository.save(vet);
     }
 
     // ========================= REQUEST FACTORIES =========================
@@ -167,6 +182,7 @@ public abstract class IntegrationTest extends WebMvcConfigurator {
         final CreateVisitRequest request = new CreateVisitRequest();
         request.setDate(LocalDate.of(2023, 1, 1));
         request.setDescription("Rabies shot");
+        request.setVetId(1);
         return request;
     }
 
@@ -180,6 +196,7 @@ public abstract class IntegrationTest extends WebMvcConfigurator {
         final UpdateVisitRequest request = new UpdateVisitRequest();
         request.setDate(LocalDate.of(2023, 6, 15));
         request.setDescription("Follow-up checkup");
+        request.setVetId(2);
         return request;
     }
 

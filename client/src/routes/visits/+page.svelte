@@ -86,6 +86,7 @@
 						<Table.Head>Date</Table.Head>
 						<Table.Head>Description</Table.Head>
 						<Table.Head>Pet ID</Table.Head>
+						<Table.Head>Vet</Table.Head>
 						<Table.Head class="w-[100px]">Actions</Table.Head>
 					</Table.Row>
 				</Table.Header>
@@ -100,6 +101,13 @@
 								<span class="text-muted-foreground">Pet #{visit.petId}</span>
 							</Table.Cell>
 							<Table.Cell>
+								{#if visit.vet}
+									<span class="text-foreground">Dr. {visit.vet.firstName} {visit.vet.lastName}</span>
+								{:else}
+									<span class="text-muted-foreground italic">Vet not recorded</span>
+								{/if}
+							</Table.Cell>
+							<Table.Cell>
 								<Button variant="ghost" size="sm" disabled title="View pet details (coming soon)">
 									<ExternalLink class="h-4 w-4" />
 								</Button>
@@ -107,7 +115,7 @@
 						</Table.Row>
 					{:else}
 						<Table.Row>
-							<Table.Cell colspan={4} class="text-center text-muted-foreground py-8">
+							<Table.Cell colspan={5} class="text-center text-muted-foreground py-8">
 								No visits match your search
 							</Table.Cell>
 						</Table.Row>

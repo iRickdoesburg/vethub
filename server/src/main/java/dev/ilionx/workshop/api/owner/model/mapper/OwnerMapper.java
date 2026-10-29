@@ -2,8 +2,12 @@ package dev.ilionx.workshop.api.owner.model.mapper;
 
 import dev.ilionx.workshop.api.owner.model.Owner;
 import dev.ilionx.workshop.api.owner.model.response.OwnerResponse;
+import dev.ilionx.workshop.api.owner.model.response.OwnerVisitLookupResponse;
 import dev.ilionx.workshop.api.owner.model.response.PetSummaryResponse;
 import dev.ilionx.workshop.api.pet.model.Pet;
+import dev.ilionx.workshop.api.pet.model.response.PetVisitLookupResponse;
+import dev.ilionx.workshop.api.visit.model.Visit;
+import dev.ilionx.workshop.api.visit.model.response.VisitLookupResponse;
 import io.github.jframe.util.mapper.config.SharedMapperConfig;
 
 import java.util.List;
@@ -26,4 +30,14 @@ public abstract class OwnerMapper {
         target = "typeName"
     )
     public abstract PetSummaryResponse toPetSummaryResponse(Pet pet);
+
+    public abstract OwnerVisitLookupResponse toVisitLookupResponse(Owner owner);
+
+    public abstract VisitLookupResponse toVisitLookupResponse(Visit visit);
+
+    @Mapping(
+        source = "type.name",
+        target = "type"
+    )
+    public abstract PetVisitLookupResponse toPetVisitLookupResponse(Pet pet);
 }

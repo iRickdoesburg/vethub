@@ -20,4 +20,13 @@ public interface VisitRepository extends JpaRepository<Visit, Integer> {
      * @return list of visits for the given pet
      */
     List<Visit> findByPetId(Integer petId);
+
+    /**
+     * Checks whether any visit records reference the given vet, used to guard against deleting a
+     * vet who has recorded visit history.
+     *
+     * @param vetId the vet's ID
+     * @return {@code true} if at least one visit references this vet
+     */
+    boolean existsByVetId(Integer vetId);
 }

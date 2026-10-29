@@ -41,6 +41,14 @@ public enum ApiErrorCode implements ApiError {
     VISIT_NOT_FOUND(
         "ERR-0007",
         "The requested visit does not exist."
+    ),
+    VISIT_LOOKUP_NOT_FOUND(
+        "ERR-0008",
+        "We couldn't find a match. Please check your details, or call the clinic."
+    ),
+    VET_HAS_VISITS(
+        "ERR-0009",
+        "This vet has recorded visits and cannot be deleted."
     );
 
     /* The error code for this reason. */

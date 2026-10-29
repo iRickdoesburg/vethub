@@ -35,6 +35,7 @@ export type UpdatePetTypeRequest = components['schemas']['UpdatePetTypeRequest']
 export type VetResponse = components['schemas']['VetResponse'];
 export type CreateVetRequest = components['schemas']['CreateVetRequest'];
 export type UpdateVetRequest = components['schemas']['UpdateVetRequest'];
+export type VetSummaryResponse = components['schemas']['VetSummaryResponse'];
 
 // =============================================================================
 // Specialty Types
@@ -50,6 +51,9 @@ export type VisitResponse = components['schemas']['VisitResponse'];
 export type VisitSummaryResponse = components['schemas']['VisitSummaryResponse'];
 export type CreateVisitRequest = components['schemas']['CreateVisitRequest'];
 export type UpdateVisitRequest = components['schemas']['UpdateVisitRequest'];
+export type OwnerVisitLookupResponse = components['schemas']['OwnerVisitLookupResponse'];
+export type PetVisitLookupResponse = components['schemas']['PetVisitLookupResponse'];
+export type VisitLookupResponse = components['schemas']['VisitLookupResponse'];
 
 // =============================================================================
 // Error Types

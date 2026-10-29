@@ -6,6 +6,8 @@ import dev.ilionx.workshop.api.vet.model.request.CreateVetRequest;
 import dev.ilionx.workshop.api.vet.model.request.UpdateVetRequest;
 import dev.ilionx.workshop.api.vet.repository.SpecialtyRepository;
 import dev.ilionx.workshop.api.vet.repository.VetRepository;
+import dev.ilionx.workshop.api.visit.repository.VisitRepository;
+import io.github.jframe.exception.core.BadRequestException;
 import io.github.jframe.exception.core.DataNotFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -15,6 +17,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static dev.ilionx.workshop.common.exception.ApiErrorCode.VET_HAS_VISITS;
 import static dev.ilionx.workshop.common.exception.ApiErrorCode.VET_NOT_FOUND;
 
 /**
@@ -26,6 +29,7 @@ public class VetService {
 
     private final VetRepository vetRepository;
     private final SpecialtyRepository specialtyRepository;
+    private final VisitRepository visitRepository;
 
     /**
      * Retrieves all veterinarians.
@@ -89,11 +93,17 @@ public class VetService {
     /**
      * Deletes a veterinarian by ID.
      *
+     * <p>Refuses to delete a vet who has recorded visit history, to avoid orphaning (or silently
+     * nulling) historical visit records.
+     *
      * @param id the vet ID
      */
     @Transactional
     public void delete(final Integer id) {
         findById(id);
+        if (visitRepository.existsByVetId(id)) {
+            throw new BadRequestException(VET_HAS_VISITS.getReason());
+        }
         vetRepository.deleteById(id);
     }
 }

@@ -34,6 +34,8 @@ public final class Paths {
 
     public static final String PUBLIC_HEALTH_PATH = PUBLIC_ACTUATOR_PATH + "/health";
 
+    public static final String PUBLIC_VISIT_LOOKUP = PUBLIC_PATH + "/visit-lookup";
+
     /* ------------------------------- APPLICATION ENDPOINTS ------------------------------- */
 
     // Owner

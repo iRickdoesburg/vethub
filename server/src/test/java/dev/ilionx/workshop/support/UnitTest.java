@@ -50,6 +50,7 @@ public abstract class UnitTest {
         visit.setDate(LocalDate.of(2023, 1, 1));
         visit.setDescription("Rabies shot");
         visit.setPet(aValidPet());
+        visit.setVet(aValidVet());
         return visit;
     }
 

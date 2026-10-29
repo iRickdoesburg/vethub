@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Stethoscope, Users, Calendar, PawPrint } from 'lucide-svelte';
+	import { Stethoscope, Users, Calendar, PawPrint, Search } from 'lucide-svelte';
 </script>
 
 <svelte:head>
@@ -82,6 +82,25 @@
 			<p class="text-sm font-light text-muted-foreground">
 				Schedule and manage veterinary appointments
 			</p>
+		</a>
+	</section>
+
+	<!-- Client Self-Service -->
+	<section class="mt-8 animate-fade-in-up stagger-4">
+		<a
+			href="/visit-lookup"
+			class="card-hover flex flex-col items-center gap-4 p-6 text-center sm:flex-row sm:text-left"
+		>
+			<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-accent/10">
+				<Search class="h-7 w-7 text-accent" />
+			</div>
+			<div>
+				<h2 class="font-medium text-foreground">Looking for your pet's visit history?</h2>
+				<p class="text-sm font-light text-muted-foreground">
+					Clients can look up past visits directly — no account needed, just your last name and
+					telephone number.
+				</p>
+			</div>
 		</a>
 	</section>
 </div>
